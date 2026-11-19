@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>ARENA STRIKE 5v5</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game"></div>
+
+<div id="scope">
+  <div class="scope-line-h"></div>
+  <div class="scope-line-v"></div>
+</div>
+
+<div id="hud">
+  <div id="crosshair"></div>
+  <div id="dmg"></div>
+  <div id="flashOverlay"></div>
+  <canvas id="minimap" width="180" height="180"></canvas>
+  <div class="panel" id="hpPanel">
+    <div>❤ ЗДОРОВЬЕ: <span id="hpVal">100</span> &nbsp;|&nbsp; 🛡 БРОНЯ: <span id="arVal">0</span> <span id="helmInd" style="color:#ffd76e;font-size:12px"></span></div>
+    <div class="bar"><i id="hpBar" style="width:100%"></i></div>
+    <div class="bar armor"><i id="arBar" style="width:0%"></i></div>
+  </div>
+  <div class="panel" id="ammoPanel">
+    <span id="ammoVal">12</span><small id="reserveWrap"> / <span id="reserveVal">36</span></small><br>
+    <small id="wName">Пистолет</small>
+    <div id="slotInd" style="font-size:11px;color:#8b93a5;margin-top:3px;line-height:1.4"></div>
+    <div id="grenadeInd" style="font-size:11px;color:#8b93a5;margin-top:2px;line-height:1.4">[4] 💣0 · ⚡0 · 💨0 · 🔥0</div>
+    <div id="kitInd" style="font-size:11px;color:#7ab7ff;font-weight:600;margin-top:2px;display:none">✂ Набор сапёра (2.5 с)</div>
+    <div id="bombCarryInd" style="font-size:11.5px;color:#ffd76e;font-weight:700;margin-top:2px;display:none">🎒 У ВАС БОМБА C4</div>
+  </div>
+  <div class="panel" id="moneyPanel">$<span id="moneyVal">800</span><div id="sideRole" style="font-size:11px;color:#8b93a5">ЗАЩИТА</div></div>
+  <div class="panel" id="roundPanel">
+    СИНИЕ <b id="score0">0</b> : <b id="score1">0</b> КРАСНЫЕ<br>
+    РАУНД <span id="roundNum">1</span> — <span id="timer">90 с</span>
+    <div id="bombHudBadge" style="display:none;color:#ff4d4d;font-weight:700;font-size:12px;margin-top:2px">💣 C4 НА ПЛЕНТЕ A</div>
+  </div>
+  <div id="banner"></div>
+  <div id="radioChat"></div>
+  <div id="sysToast"></div>
+  <div id="bombActionBox">
+    <div id="bombActionText">Удерживайте [E] для закладки C4</div>
+    <div class="bombBar"><i id="bombProgress" style="width:0%"></i></div>
+  </div>
+  <div id="feed"></div>
+  <div id="specBar"></div>
+  <div id="buyHint">[B] магазин · [TAB] статистика · [1-4/Колесо/Q] оружие · [Shift] тихий шаг · [C] присед</div>
+</div>
+
+<div id="buy">
+  <div class="buyHead">
+    <div>
+      <h3>МАГАЗИН СНАРЯЖЕНИЯ</h3>
+      <div class="sub">Баланс: $<span id="buyMoney">800</span> — нажмите на предмет для покупки · [B] или [Esc] закрыть</div>
+    </div>
+  </div>
+
+  <div class="buyGrid">
+    <div class="buySection">
+      <div class="buyCat">ПИСТОЛЕТЫ · СЛОТ [2]</div>
+      <div class="buyRow owned" data-buy="pistol">
+        <div>
+          <div class="buyName">Пистолет</div>
+          <div class="buyStats">Урон 16 · 340 мс · магазин 12 · разброс 0.025</div>
+        </div>
+        <span class="price">в наличии</span>
+      </div>
+      <div class="buyRow" data-buy="pistol_mid">
+        <div>
+          <div class="buyName">Усиленный пистолет</div>
+          <div class="buyStats">Урон 30 · 280 мс · магазин 14 · разброс 0.020</div>
+        </div>
+        <span class="price">$500</span>
+      </div>
+      <div class="buyRow" data-buy="pistol_deagle">
+        <div>
+          <div class="buyName">Дигл</div>
+          <div class="buyStats">Урон 50 (ваншот в голову) · 400 мс · магазин 7</div>
+        </div>
+        <span class="price">$700</span>
+      </div>
+    </div>
+
+    <div class="buySection">
+      <div class="buyCat">БРОНЯ, САПЁР И ГРАНАТЫ · СЛОТ [4]</div>
+      <div class="buyRow" data-buy="armor">
+        <div>
+          <div class="buyName">Бронежилет</div>
+          <div class="buyStats">100 ед. · поглощает 50% урона в тело</div>
+        </div>
+        <span class="price">$650</span>
+      </div>
+      <div class="buyRow" data-buy="armor_helmet">
+        <div>
+          <div class="buyName">Бронежилет + шлем</div>
+          <div class="buyStats">50% тело и 30% голова (докупка шлема — $350)</div>
+        </div>
+        <span class="price">$1000</span>
+      </div>
+      <div class="buyRow" data-buy="defuse_kit">
+        <div>
+          <div class="buyName">Набор сапёра (Defuse Kit)</div>
+          <div class="buyStats">Только защита · ускоряет разминирование C4 с 5 с до 2.5 с</div>
+        </div>
+        <span class="price">$400</span>
+      </div>
+      <div class="buyRow" data-buy="grenade">
+        <div>
+          <div class="buyName">Осколочная граната [4]</div>
+          <div class="buyStats">Радиус 8 м · урон до 120 · таймер 2.5 с</div>
+        </div>
+        <span class="price">$300</span>
+      </div>
+      <div class="buyRow" data-buy="flash">
+        <div>
+          <div class="buyName">Световая граната (флешка) [4]</div>
+          <div class="buyStats">Ослепляет всех в радиусе 18 м, кто смотрит на взрыв</div>
+        </div>
+        <span class="price">$200</span>
+      </div>
+      <div class="buyRow" data-buy="smoke">
+        <div>
+          <div class="buyName">Дымовая граната [4]</div>
+          <div class="buyStats">Плотная завеса радиусом 5.5 м на 14 секунд</div>
+        </div>
+        <span class="price">$300</span>
+      </div>
+      <div class="buyRow" data-buy="molotov">
+        <div>
+          <div class="buyName" id="mollyShopName">Зажигательная / Молотов [4]</div>
+          <div class="buyStats">Очаг огня 4.5 м на 7 секунд · 45 урона/с в зоне горения</div>
+        </div>
+        <span class="price">$400</span>
+      </div>
+    </div>
+
+    <div class="buySection">
+      <div class="buyCat">ТЯЖЁЛОЕ И БЛИЖНЕЕ ОРУЖИЕ · СЛОТ [1]</div>
+      <div class="buyRow" data-buy="smg">
+        <div>
+          <div class="buyName">Пистолет-пулемёт</div>
+          <div class="buyStats">Урон 19 · 95 мс · магазин 30 · разброс 0.030</div>
+        </div>
+        <span class="price">$1200</span>
+      </div>
+      <div class="buyRow" data-buy="negev">
+        <div>
+          <div class="buyName">Пулемёт (Negev)</div>
+          <div class="buyStats">Урон 24 · 75 мс · короб 150 · стабилизируется при зажиме</div>
+        </div>
+        <span class="price">$1700</span>
+      </div>
+      <div class="buyRow" data-buy="shotgun">
+        <div>
+          <div class="buyName">Дробовик</div>
+          <div class="buyStats">8 дробин × 14 урона · 900 мс · магазин 6 · ближний бой</div>
+        </div>
+        <span class="price">$1800</span>
+      </div>
+    </div>
+
+    <div class="buySection">
+      <div class="buyCat">ВИНТОВКИ И СНАЙПЕРКИ · СЛОТ [1]</div>
+      <div class="buyRow" data-buy="rifle">
+        <div>
+          <div class="buyName">Штурмовая винтовка</div>
+          <div class="buyStats">Урон 34 · 130 мс · магазин 30 · разброс 0.011</div>
+        </div>
+        <span class="price">$2700</span>
+      </div>
+      <div class="buyRow" data-buy="sniper_light">
+        <div>
+          <div class="buyName">Лёгкая снайперка</div>
+          <div class="buyStats">Урон 80 (ваншот в голову) · 1400 мс · магазин 5 · ПКМ: оптика</div>
+        </div>
+        <span class="price">$3700</span>
+      </div>
+      <div class="buyRow" data-buy="sniper_heavy">
+        <div>
+          <div class="buyName">Тяжёлая снайперка</div>
+          <div class="buyStats">Урон 200 (ваншот в тело) · 1600 мс · магазин 5 · ПКМ: оптика</div>
+        </div>
+        <span class="price">$4700</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="stats">
+  <h2>СТАТИСТИКА МАТЧА</h2>
+  <div id="statsScore">СИНИЕ 0 : 0 КРАСНЫЕ</div>
+  <div class="statCols">
+    <div class="statCol">
+      <div class="blue" id="statsBlueTitle">СИНИЕ</div>
+      <table id="statsBlue"></table>
+    </div>
+    <div class="statCol">
+      <div class="red" id="statsRedTitle">КРАСНЫЕ</div>
+      <table id="statsRed"></table>
+    </div>
+  </div>
+</div>
+
+<div id="settings">
+  <h1>НАСТРОЙКИ</h1>
+  <div class="settingsBox">
+    <div class="setRow">
+      <label for="sensRange">Чувствительность мыши</label>
+      <input id="sensRange" type="range" min="0.2" max="3" step="0.1" value="1.0">
+      <span class="val" id="sensVal">1.0</span>
+    </div>
+    <div class="setRow">
+      <label for="volRange">Громкость звуков</label>
+      <input id="volRange" type="range" min="0" max="1" step="0.05" value="1">
+      <span class="val" id="volVal">100%</span>
+    </div>
+    <div class="setRow">
+      <label for="soundToggle">Звук включён</label>
+      <input id="soundToggle" type="checkbox" checked>
+    </div>
+    <div class="setRow">
+      <label for="crouchToggle">Присед по нажатию [C] (Toggle)</label>
+      <input id="crouchToggle" type="checkbox">
+    </div>
+    <div class="buyCat" style="margin-top:16px; border-bottom:1px solid #3a4a6a">ПРИЦЕЛ</div>
+    <div class="setRow">
+      <label for="chShape">Форма прицела</label>
+      <select id="chShape" style="width:120px; background:#1b2437; color:#e8e6e3; border:1px solid #3a4a6a; padding:4px; border-radius:4px">
+        <option value="dot">Точка</option>
+        <option value="cross">Крестик</option>
+        <option value="circle">Круг</option>
+      </select>
+    </div>
+    <div class="setRow">
+      <label for="chSize">Размер прицела</label>
+      <input id="chSize" type="range" min="2" max="16" step="1" value="4">
+      <span class="val" id="chSizeVal">4</span>
+    </div>
+    <div class="setRow">
+      <label for="chColor">Цвет прицела</label>
+      <input id="chColor" type="color" value="#7CFC00" style="width:60px; height:28px; cursor:pointer; background:none; border:none">
+    </div>
+    <button id="settingsClose">НАЗАД</button>
+  </div>
+</div>
+
+<div id="overlay">
+  <h1>ARENA <span>STRIKE</span></h1>
+  <p>Тактический 3D-шутер 5 на 5 с плентами <b>A / B</b> и бомбой <b>C4</b>. Матч идёт до <b>13 побед</b> со сменой сторон после 12-го раунда.</p>
+
+  <div class="mapSelect">
+    <div class="mapCard active" data-map="arena">
+      <div class="mapTitle">ARENA CORE</div>
+      <div class="mapDesc">Классический полигон · симметричные укрытия, быстрые перестрелки на средней дистанции</div>
+    </div>
+    <div class="mapCard" data-map="sandstorm">
+      <div class="mapTitle">SANDSTORM (Dust2)</div>
+      <div class="mapDesc">Песчаный город · длинный выход на A, простреливаемый мид, шорт и балкон с пандусами</div>
+    </div>
+  </div>
+
+  <p><kbd>W A S D</kbd> бег · <kbd>Shift</kbd> тихий шаг · <kbd>C</kbd> присесть · <kbd>Space</kbd> прыжок ·
+  <kbd>1</kbd>–<kbd>4</kbd>/<kbd>Колесо</kbd>/<kbd>Q</kbd> слоты · <kbd>ЛКМ</kbd>/<kbd>ПКМ</kbd> бросок гранаты ·
+  <kbd>E</kbd> бомба / подбор · <kbd>B</kbd> магазин · <kbd>TAB</kbd> статистика</p>
+  <p style="color:#ffd76e;font-size:13px">После смерти: <kbd>V</kbd> — сменить режим камеры · <kbd>ЛКМ</kbd> — сменить наблюдаемого</p>
+  <button id="playBtn">В БОЙ</button>
+  <button id="settingsBtn">НАСТРОЙКИ</button>
+</div>
+
+<!-- Библиотека Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- Модули игры (порядок подключения критичен) -->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/world.js"></script>
+<script src="js/viewmodel.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/bots.js"></script>
+<script src="js/spectator.js"></script>
+<script src="js/controls.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
